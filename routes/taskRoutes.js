@@ -71,9 +71,9 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
-router.put("/:id", auth, async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
-    const task = await Task.findOne({
+    const task = await Task.findOneAndDelete({
       _id: req.params.id,
       createdBy: req.user.id,
     });
@@ -84,17 +84,11 @@ router.put("/:id", auth, async (req, res) => {
       });
     }
 
-    task.title = req.body.title || task.title;
+    await logActivity(req.user.id, "TASK_DELETE", "Task Deleted");
 
-    task.description = req.body.description || task.description;
-
-    task.status = req.body.status || task.status;
-
-    await task.save();
-
-    await logActivity(req.user.id, "TASK_UPDATE", "Task Updated");
-
-    res.json(task);
+    res.json({
+      message: "Task Deleted",
+    });
   } catch (error) {
     res.status(500).json({
       message: error.message,
